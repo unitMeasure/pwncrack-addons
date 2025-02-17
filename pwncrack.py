@@ -3,12 +3,13 @@ import subprocess
 import requests
 import socket
 import logging
+import time 
 from pwnagotchi.plugins import Plugin
 from pwnagotchi.utils import StatusFile
 
 class UploadConvertPlugin(Plugin):
     __author__ = 'Terminatoror'
-    __version__ = '0.5.0'
+    __version__ = '0.6.0'
     __license__ = 'GPL3'
     __description__ = 'Converts .pcap files to .hc22000 and uploads them to pwncrack.org when internet is available.'
 
@@ -25,6 +26,7 @@ class UploadConvertPlugin(Plugin):
         logging.info(f"Using key: {self.key}")  # Log the key being used
         self._convert_and_upload()
         self._download_potfile()
+        time.sleep(300)  # Sleep for 5 minutes
 
     def _convert_and_upload(self):
         # Convert all .pcap files to .hc22000
