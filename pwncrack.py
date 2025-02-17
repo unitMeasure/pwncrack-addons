@@ -22,15 +22,9 @@ class UploadConvertPlugin(Plugin):
         self.status = StatusFile('/root/.pwnagotchi-uploadconvert-plugin')
 
     def on_internet_available(self, agent):
+        logging.info(f"Using key: {self.key}")  # Log the key being used
         self._convert_and_upload()
         self._download_potfile()
-
-    def _is_internet_available(self):
-        try:
-            socket.create_connection(("www.google.com", 80), timeout=1)
-            return True
-        except OSError:
-            return False
 
     def _convert_and_upload(self):
         # Convert all .pcap files to .hc22000
@@ -51,6 +45,7 @@ class UploadConvertPlugin(Plugin):
 
             # Log the response
             logging.info(f"Upload response: {response.json()}")
+            os.remove(self.combined_file)  # Remove the combined.hc22000 file
         else:
             logging.info("No .pcap files found to convert.")
 
@@ -63,11 +58,3 @@ class UploadConvertPlugin(Plugin):
         else:
             logging.error(f"Failed to download potfile: {response.status_code}")
             logging.error(response.json())  # Log the error message from the server
-
-    def on_ready(self, agent):
-        while True:
-            if self._is_internet_available():
-                logging.info(f"Using key: {self.key}")  # Log the key being used
-                self._download_potfile()
-                self._convert_and_upload()
-                break
