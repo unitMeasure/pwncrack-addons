@@ -7,12 +7,12 @@ import uuid  # Add this import
 
 SERVER_URL = "http://pwncrack.org"
 HASHCAT_BIN = "hashcat"
-CUSTOM_ATTACK_ENABLED = True  # Set to True if you want to use custom rules
-CUSTOM_WORDLIST = "password.txt"  # optional but both are required
-CUSTOM_RULES = "best64.rule"  # optional but both are required
+CUSTOM_ATTACK_ENABLED = False  # Set to True if you want to use custom rules
+CUSTOM_WORDLIST = "password.txt"  # optional but both are required (wordlist must be in the same directory)
+CUSTOM_RULES = "best64.rule"  # optional but both are required (rule file must be in the same directory)
 CUSTOM_MASK_ATTACK_ENABLED = False  # Set to True if you want to use hybrid dictionary + mask attack
-CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required
-CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required
+CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required (wordlist must be in the same directory)
+CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required (mask must be in hashcat format)
 CRACKER_ID = str(uuid.uuid4())  # Generate a unique cracker ID
 
 class TerminalColors:
