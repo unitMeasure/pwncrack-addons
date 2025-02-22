@@ -181,31 +181,37 @@ def main():
         print("Failed to download wordlist")
         return
 
-    while True:
-        work = get_work()
-        if not work:
-            print("No work available, waiting...")
-            time.sleep(60)
-            continue
+    try:
+        while True:
+            work = get_work()
+            if not work:
+                print("No work available, waiting...")
+                time.sleep(60)
+                continue
+                
+            file_name = work['file_name']
+            download_url = work['download_url']
             
-        file_name = work['file_name']
-        download_url = work['download_url']
-        
-        print(f"Received work: {file_name}")
-        
-        if download_file(download_url, file_name):
-            potfile_content = crack_file(file_name)
+            print(f"Received work: {file_name}")
             
-            if potfile_content:
-                print(f"Found results for {file_name}")
-                if submit_results(file_name, potfile_content):
-                    print("Results submitted successfully")
+            if download_file(download_url, file_name):
+                potfile_content = crack_file(file_name)
+                
+                if potfile_content:
+                    print(f"Found results for {file_name}")
+                    if submit_results(file_name, potfile_content):
+                        print("Results submitted successfully")
+                    else:
+                        print("Failed to submit results")
                 else:
-                    print("Failed to submit results")
+                    print(f"No results found for {file_name}")
             else:
-                print(f"No results found for {file_name}")
-        else:
-            print(f"Failed to download {file_name}")
+                print(f"Failed to download {file_name}")
+    except KeyboardInterrupt:
+        pass
+    finally:
+        print("\nProcess interrupted by user. Exiting gracefully.")
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
