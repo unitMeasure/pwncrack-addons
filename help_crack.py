@@ -133,8 +133,9 @@ def crack_file(file_name):
         while process.poll() is None:
             time.sleep(1)
             hashrate = parse_hashrate(log_file)
-            print(f"Current hash rate: {hashrate} H/s")
-            send_hashrate(file_name, hashrate)
+            if hashrate > 0:
+                print(f"Current hash rate: {hashrate} H/s")
+                send_hashrate(file_name, hashrate)
         
         process.wait()
         
