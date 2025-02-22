@@ -211,6 +211,7 @@ def main():
         pass
     finally:
         print("\nProcess interrupted by user. Exiting gracefully.")
+        print("\nThank you for using and contributing to PwnCrack!")
         sys.exit(0)
 
 if __name__ == "__main__":
