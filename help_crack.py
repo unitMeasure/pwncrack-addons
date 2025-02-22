@@ -7,8 +7,23 @@ import uuid  # Add this import
 
 SERVER_URL = "http://pwncrack.org"
 HASHCAT_BIN = "hashcat"
-WORDLIST = "password.txt"  # Update this path
+CUSTOM_ATTACK_ENABLED = True  # Set to True if you want to use custom rules
+CUSTOM_WORDLIST = "password.txt"  # optional but both are required
+CUSTOM_RULES = "best64.rule"  # optional but both are required
+CUSTOM_MASK_ATTACK_ENABLED = False  # Set to True if you want to use hybrid dictionary + mask attack
+CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required
+CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required
 CRACKER_ID = str(uuid.uuid4())  # Generate a unique cracker ID
+
+class TerminalColors:
+    ORANGE = '\033[33m'
+    RED = '\033[31m'
+    PURPLE = '\033[35m'
+    GREEN = '\033[32m'
+    RESET = '\033[0m'
+
+def log_with_timestamp(message, color=TerminalColors.RESET):
+    print(f"{time.strftime('[%H:%M:%S]')} - {color}{message}{TerminalColors.RESET}")
 
 def get_work():
     try:
@@ -17,7 +32,7 @@ def get_work():
             return response.json()
         return None
     except Exception as e:
-        print(f"Error getting work: {e}")
+        log_with_timestamp(f"Error getting work: {e}", TerminalColors.RED)
         return None
 
 def download_file(url, filename):
@@ -27,12 +42,12 @@ def download_file(url, filename):
             f.write(response.content)
         return True
     except Exception as e:
-        print(f"Error downloading file: {e}")
+        log_with_timestamp(f"Error downloading file: {e}", TerminalColors.RED)
         return False
 
 def submit_results(file_name, potfile_content):
     try:
-        print(f"Submitting results for {file_name}")
+        log_with_timestamp(f"Submitting results for {file_name}", TerminalColors.GREEN)
         response = requests.post(
             f"{SERVER_URL}/put_work",
             json={
@@ -40,11 +55,11 @@ def submit_results(file_name, potfile_content):
                 "potfile_content": potfile_content
             }
         )
-        print(f"Response status code: {response.status_code}")
-        print(f"Response content: {response.content}")
+        log_with_timestamp(f"Response status code: {response.status_code}", TerminalColors.GREEN)
+        log_with_timestamp(f"Response content: {response.content}", TerminalColors.GREEN)
         return response.status_code == 200
     except Exception as e:
-        print(f"Error submitting results: {e}")
+        log_with_timestamp(f"Error submitting results: {e}", TerminalColors.RED)
         return False
 
 def send_hashrate(file_name, hashrate):
@@ -59,7 +74,7 @@ def send_hashrate(file_name, hashrate):
         )
         return response.status_code == 200
     except Exception as e:
-        print(f"Error sending hashrate: {e}")
+        log_with_timestamp(f"Error sending hashrate: {e}", TerminalColors.RED)
         return False
 
 def parse_hashrate(output_file):
@@ -103,7 +118,7 @@ def parse_progress(log_file):
 def crack_file(file_name):
     output_file = f"{file_name}.potfile"
     log_file = f"{file_name}.log"
-    print(f"Potfile: {file_name}.potfile")
+    log_with_timestamp(f"Potfile: {file_name}.potfile", TerminalColors.PURPLE)
     
     command = [
         HASHCAT_BIN,
@@ -127,14 +142,14 @@ def crack_file(file_name):
         files = [f for f in os.listdir('.') if f.endswith('.hc22000') and f != file_name]
         if len(files) == 1:
             second_file_name = files[0]
-            print(f"Downloading second file: {second_file_name}")
+            log_with_timestamp(f"Downloading second file: {second_file_name}")
             download_file(f"{SERVER_URL}/download/{second_file_name}", second_file_name)
         
         while process.poll() is None:
             time.sleep(1)
             hashrate = parse_hashrate(log_file)
             if hashrate > 0:
-                print(f"Current hash rate: {hashrate} H/s")
+                log_with_timestamp(f"Current hash rate: {hashrate} H/s", TerminalColors.ORANGE)
                 send_hashrate(file_name, hashrate)
         
         process.wait()
@@ -142,7 +157,74 @@ def crack_file(file_name):
         if os.path.exists(output_file):
             with open(output_file, 'r') as f:
                 content = f.read()
-            return content
+            if content:
+                return content
+        
+        # Run second command if CUSTOM_ATTACK_ENABLED
+        if CUSTOM_ATTACK_ENABLED:
+            log_with_timestamp(f"Running hashcat with {CUSTOM_WORDLIST} and {CUSTOM_RULES} for {file_name}")
+            command = [
+                HASHCAT_BIN,
+                "-m", "22000",
+                "--outfile-format", "1,2",
+                "-a", "0",
+                "-o", output_file,
+                "--potfile-disable",
+                "--restore-disable",
+                file_name,
+                CUSTOM_WORDLIST,
+                "-r", CUSTOM_RULES
+            ]
+            with open(log_file, 'w') as log:
+                process = subprocess.Popen(command, stdout=log, stderr=log, text=True)
+            
+            while process.poll() is None:
+                time.sleep(1)
+                hashrate = parse_hashrate(log_file)
+                if hashrate > 0:
+                    log_with_timestamp(f"Current hash rate: {hashrate} H/s", TerminalColors.ORANGE)
+                    send_hashrate(file_name, hashrate)
+            
+            process.wait()
+            
+            if os.path.exists(output_file):
+                with open(output_file, 'r') as f:
+                    content = f.read()
+                if content:
+                    return content
+        
+        # Run third command if CUSTOM_MASK_ATTACK_ENABLED
+        if CUSTOM_MASK_ATTACK_ENABLED:
+            log_with_timestamp(f"Running hashcat with hybrid dictionary {CUSTOM_MASKDICTIONARY} and mask {CUSTOM_MASK} for {file_name}")
+            command = [
+                HASHCAT_BIN,
+                "-m", "22000",
+                "--outfile-format", "1,2",
+                "-a", "6",
+                "-o", output_file,
+                "--potfile-disable",
+                "--restore-disable",
+                file_name,
+                CUSTOM_MASKDICTIONARY,
+                CUSTOM_MASK
+            ]
+            with open(log_file, 'w') as log:
+                process = subprocess.Popen(command, stdout=log, stderr=log, text=True)
+            
+            while process.poll() is None:
+                time.sleep(1)
+                hashrate = parse_hashrate(log_file)
+                if hashrate > 0:
+                    log_with_timestamp(f"Current hash rate: {hashrate} H/s", TerminalColors.ORANGE)
+                    send_hashrate(file_name, hashrate)
+            
+            process.wait()
+            
+            if os.path.exists(output_file):
+                with open(output_file, 'r') as f:
+                    content = f.read()
+                return content
+        
         return None
     except subprocess.CalledProcessError:
         return None
@@ -156,7 +238,7 @@ def crack_file(file_name):
         
         # Start processing the second file after the first one is done
         if second_file_name:
-            print(f"Starting hashcat with second file: {second_file_name}")
+            log_with_timestamp(f"Starting hashcat with second file: {second_file_name}")
             crack_file(second_file_name)
 
 def download_wordlist(wordlist_name):
@@ -168,7 +250,7 @@ def download_wordlist(wordlist_name):
             f.write(response.content)
         return wordlist_path
     except Exception as e:
-        print(f"Error downloading wordlist: {e}")
+        log_with_timestamp(f"Error downloading wordlist: {e}", TerminalColors.RED)
         return None
 
 def main():
@@ -178,35 +260,35 @@ def main():
         global WORDLIST
         WORDLIST = wordlist_path
     else:
-        print("Failed to download wordlist")
+        log_with_timestamp("Failed to download wordlist", TerminalColors.RED)
         return
 
     try:
         while True:
             work = get_work()
             if not work:
-                print("No work available, waiting...")
+                log_with_timestamp("No work available, waiting...", TerminalColors.RED)
                 time.sleep(60)
                 continue
                 
             file_name = work['file_name']
             download_url = work['download_url']
             
-            print(f"Received work: {file_name}")
+            log_with_timestamp(f"Received work: {file_name}", TerminalColors.PURPLE)
             
             if download_file(download_url, file_name):
                 potfile_content = crack_file(file_name)
                 
                 if potfile_content:
-                    print(f"Found results for {file_name}")
+                    log_with_timestamp(f"Found results for {file_name}", TerminalColors.GREEN)
                     if submit_results(file_name, potfile_content):
-                        print("Results submitted successfully")
+                        log_with_timestamp("Results submitted successfully", TerminalColors.GREEN)
                     else:
-                        print("Failed to submit results")
+                        log_with_timestamp("Failed to submit results", TerminalColors.RED)
                 else:
-                    print(f"No results found for {file_name}")
+                    log_with_timestamp(f"No results found for {file_name}", TerminalColors.RED)
             else:
-                print(f"Failed to download {file_name}")
+                log_with_timestamp(f"Failed to download {file_name}", TerminalColors.RED)
     except KeyboardInterrupt:
         pass
     finally:
