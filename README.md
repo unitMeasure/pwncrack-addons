@@ -32,7 +32,7 @@ USERKEY = "YOUR-USER-KEY"  # Add this variable
 
 ## pwnagotchi plugin pwncrack.py 🤖
 
-This plugin auto-uploads handshakes to pwncrack.org and is significantly faster at uploading than wpa-sec because it combines them before uploading to save time. Below is the configuration:
+This plugin auto-uploads handshakes to pwncrack.org and is significantly faster at uploading than wpa-sec because it combines them before uploading to save time. Below is the configuration for your config.toml:
 
 ````python
 main.plugins.pwncrack.enabled = true
