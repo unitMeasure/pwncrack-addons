@@ -3,7 +3,7 @@ import subprocess
 import os
 import sys
 import time
-import uuid  # Add this import
+import uuid
 
 SERVER_URL = "http://pwncrack.org"
 HASHCAT_BIN = "hashcat"
@@ -14,12 +14,12 @@ CUSTOM_MASK_ATTACK_ENABLED = False  # Set to True if you want to use hybrid dict
 CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required (wordlist must be in the same directory)
 CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required (mask must be in hashcat format)
 CRACKER_ID = str(uuid.uuid4())  # Generate a unique cracker ID
-HASHCAT_WORKLOAD = 3  # Hashcat workload profile (1-4) 1: low, 2: medium, 3: high, 4: insane (recommended: 3)
+USERKEY = "YOUR-USER-KEY"  # Add this variable
 
 class TerminalColors:
     ORANGE = '\033[33m'
     RED = '\033[31m'
-    CYAN = '\033[0;36m'  # Replace PURPLE with CYAN
+    PURPLE = '\033[35m'
     GREEN = '\033[32m'
     RESET = '\033[0m'
 
@@ -65,13 +65,13 @@ def submit_results(file_name, potfile_content):
 
 def send_hashrate(file_name, hashrate):
     try:
-        hashrate = round(hashrate)  # Round the hashrate
         response = requests.post(
             f"{SERVER_URL}/update_hashrate",
             json={
                 "file_name": file_name,
                 "hashrate": hashrate,
-                "cracker_id": CRACKER_ID  # Send cracker_id
+                "cracker_id": CRACKER_ID,  # Send cracker_id
+                "user_key": USERKEY  # Send user_key
             }
         )
         return response.status_code == 200
@@ -120,7 +120,7 @@ def parse_progress(log_file):
 def crack_file(file_name):
     output_file = f"{file_name}.potfile"
     log_file = f"{file_name}.log"
-    log_with_timestamp(f"Potfile: {file_name}.potfile", TerminalColors.CYAN)  # Replace PURPLE with CYAN
+    log_with_timestamp(f"Potfile: {file_name}.potfile", TerminalColors.PURPLE)
     
     command = [
         HASHCAT_BIN,
@@ -130,7 +130,6 @@ def crack_file(file_name):
         "-o", output_file,
         "--potfile-disable",
         "--restore-disable",
-        "-w", str(HASHCAT_WORKLOAD),  # Add this line
         file_name,
         WORDLIST
     ]
@@ -147,6 +146,8 @@ def crack_file(file_name):
             second_file_name = files[0]
             log_with_timestamp(f"Downloading second file: {second_file_name}")
             download_file(f"{SERVER_URL}/download/{second_file_name}", second_file_name)
+        
+        start_time = time.time()  # Track start time for session duration
         
         while process.poll() is None:
             time.sleep(1)
@@ -174,7 +175,6 @@ def crack_file(file_name):
                 "-o", output_file,
                 "--potfile-disable",
                 "--restore-disable",
-                "-w", str(HASHCAT_WORKLOAD),  # Add this line
                 file_name,
                 CUSTOM_WORDLIST,
                 "-r", CUSTOM_RULES
@@ -208,7 +208,6 @@ def crack_file(file_name):
                 "-o", output_file,
                 "--potfile-disable",
                 "--restore-disable",
-                "-w", str(HASHCAT_WORKLOAD),  # Add this line
                 file_name,
                 CUSTOM_MASKDICTIONARY,
                 CUSTOM_MASK
@@ -243,7 +242,7 @@ def crack_file(file_name):
         
         # Start processing the second file after the first one is done
         if second_file_name:
-            log_with_timestamp(f"Starting hashcat with next file: {second_file_name}", TerminalColors.CYAN)  # Replace PURPLE with CYAN
+            log_with_timestamp(f"Starting hashcat with second file: {second_file_name}")
             crack_file(second_file_name)
 
 def download_wordlist(wordlist_name):
@@ -279,7 +278,7 @@ def main():
             file_name = work['file_name']
             download_url = work['download_url']
             
-            log_with_timestamp(f"Received work: {file_name}", TerminalColors.CYAN)  # Replace PURPLE with CYAN
+            log_with_timestamp(f"Received work: {file_name}", TerminalColors.PURPLE)
             
             if download_file(download_url, file_name):
                 potfile_content = crack_file(file_name)
