@@ -35,10 +35,10 @@ USERKEY = "YOUR-USER-KEY"  # Add this variable
 This plugin auto-uploads handshakes to pwncrack.org and is significantly faster at uploading than wpa-sec because it combines them before uploading to save time. Below is the configuration:
 
 ````python
-- `main.plugins.pwncrack.enabled = true`
-- `main.plugins.pwncrack.key = ""`
-- `main.plugins.pwncrack.handshakes_dir = "/home/pi/handshakes"`
-- `main.plugins.pwncrack.whitelist = ["your-SSID1", "your-SSID2"]`
+main.plugins.pwncrack.enabled = true
+main.plugins.pwncrack.key = ""
+main.plugins.pwncrack.handshakes_dir = "/home/pi/handshakes"
+main.plugins.pwncrack.whitelist = ["your-SSID1", "your-SSID2"]
 ````
 
 ## AOupload.py 📤
