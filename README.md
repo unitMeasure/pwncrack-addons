@@ -15,16 +15,18 @@ PwnCrack.org offers a faster and more feature-rich experience for uploading and 
 
 This script helps you configure and run Hashcat for cracking passwords. Below are the settings you need to configure:
 
-- `SERVER_URL = "http://pwncrack.org"`: The URL of the PwnCrack server.
-- `HASHCAT_BIN = "hashcat"`: The path to the Hashcat binary.
-- `CUSTOM_ATTACK_ENABLED = False`: Set to `True` if you want to use custom rules.
-- `CUSTOM_WORDLIST = "password.txt"`: The custom wordlist file (must be in the same directory).
-- `CUSTOM_RULES = "best64.rule"`: The custom rules file (must be in the same directory).
-- `CUSTOM_MASK_ATTACK_ENABLED = False`: Set to `True` if you want to use a hybrid dictionary + mask attack.
-- `CUSTOM_MASKDICTIONARY = "maskdict.txt"`: The custom mask dictionary file (must be in the same directory).
-- `CUSTOM_MASK = "?d?d?d?d?d"`: The custom mask (must be in Hashcat format).
-- `CRACKER_ID = str(uuid.uuid4())`: Generate a unique cracker ID.
-- `USERKEY = "YOUR-USER-KEY"`: Set your user key to appear on the cracking leaderboard.
+````python
+SERVER_URL = "http://pwncrack.org"
+HASHCAT_BIN = "hashcat"
+CUSTOM_ATTACK_ENABLED = False  # Set to True if you want to use custom rules
+CUSTOM_WORDLIST = "password.txt"  # optional but both are required (wordlist must be in the same directory)
+CUSTOM_RULES = "best64.rule"  # optional but both are required (rule file must be in the same directory)
+CUSTOM_MASK_ATTACK_ENABLED = False  # Set to True if you want to use hybrid dictionary + mask attack
+CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required (wordlist must be in the same directory)
+CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required (mask must be in hashcat format)
+CRACKER_ID = str(uuid.uuid4())  # Generate a unique cracker ID
+USERKEY = "YOUR-USER-KEY"  # Add this variable
+````
 
 **Note:** Ensure `hashcat.exe` is in the same folder as the Python file on Windows, or Hashcat is usable as a command in that directory for every OS.
 
@@ -32,10 +34,12 @@ This script helps you configure and run Hashcat for cracking passwords. Below ar
 
 This plugin auto-uploads handshakes to pwncrack.org and is significantly faster at uploading than wpa-sec because it combines them before uploading to save time. Below is the configuration:
 
+````python
 - `main.plugins.pwncrack.enabled = true`
 - `main.plugins.pwncrack.key = ""`
 - `main.plugins.pwncrack.handshakes_dir = "/home/pi/handshakes"`
 - `main.plugins.pwncrack.whitelist = ["your-SSID1", "your-SSID2"]`
+````
 
 ## AOupload.py 📤
 
