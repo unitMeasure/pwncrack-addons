@@ -9,7 +9,7 @@ import pwnagotchi
 
 class UploadConvertPlugin(Plugin):
     __author__ = 'Terminatoror'
-    __version__ = '1.0.0'
+    __version__ = '1.0.1'
     __license__ = 'GPL3'
     __description__ = 'Converts .pcap files to .hc22000 and uploads them to pwncrack.org when internet is available.'
 
@@ -20,19 +20,14 @@ class UploadConvertPlugin(Plugin):
         self.last_run_time = 0
 
     def on_loaded(self):
-            logging.info('[pwncrack] loading')
-            self.handshake_dir = self.options.get('handshakes_dir', '/home/pi/handshakes')  # Change this to your handshake directory
-            self.key = self.options.get('key', "")  # Change this to your key
-            self.whitelist = self.options.get('whitelist', [])  # New whitelist of filename patterns to skip
-            self.combined_file = os.path.join(self.handshake_dir, 'combined.hc22000')
-            self.potfile_path = os.path.join(self.handshake_dir, 'cracked.pwncrack.potfile')
+        logging.info('[pwncrack] loading')
 
-    def _is_internet_available(self):
-        try:
-            socket.create_connection(("www.google.com", 80), timeout=3)
-            return True
-        except OSError:
-            return False
+    def on_config_changed(self, config):
+        self.handshake_dir = config["bettercap"].get("handshakes")
+        self.key = self.options.get('key', "")  # Change this to your key
+        self.whitelist = config["main"].get("whitelist", [])
+        self.combined_file = os.path.join(self.handshake_dir, 'combined.hc22000')
+        self.potfile_path = os.path.join(self.handshake_dir, 'cracked.pwncrack.potfile')
 
     def on_internet_available(self, agent):
         current_time = time.time()
