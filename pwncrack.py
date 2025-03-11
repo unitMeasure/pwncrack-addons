@@ -36,7 +36,7 @@ class UploadConvertPlugin(Plugin):
             logging.debug(f"[pwncrack] Waiting {remaining_wait_time:.1f} more seconds before next run.")
             return
         self.last_run_time = current_time
-        logging.info(f"[pwncrack] Running upload process. Key: {self.key}, waiting: {self.timewait} seconds.")
+        logging.info(f"[pwncrack] Running upload process. waiting: {self.timewait} seconds.")
         try:
             self._convert_and_upload()
             self._download_potfile()
