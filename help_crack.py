@@ -15,6 +15,7 @@ CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required (wordli
 CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required (mask must be in hashcat format)
 CRACKER_ID = str(uuid.uuid4())  # Generate a unique cracker ID
 USERKEY = "YOUR-USER-KEY"  # Add this variable
+DISABLE_HWMON = True  # Set to True to disable hardware monitoring
 
 class TerminalColors:
     ORANGE = '\033[33m'
@@ -134,6 +135,9 @@ def crack_file(file_name):
         WORDLIST
     ]
     
+    if DISABLE_HWMON:
+        command.append("--hwmon-disable")
+    
     second_file_name = None
     
     try:
@@ -179,6 +183,8 @@ def crack_file(file_name):
                 CUSTOM_WORDLIST,
                 "-r", CUSTOM_RULES
             ]
+            if DISABLE_HWMON:
+                command.append("--hwmon-disable")
             with open(log_file, 'w') as log:
                 process = subprocess.Popen(command, stdout=log, stderr=log, text=True)
             
@@ -212,6 +218,8 @@ def crack_file(file_name):
                 CUSTOM_MASKDICTIONARY,
                 CUSTOM_MASK
             ]
+            if DISABLE_HWMON:
+                command.append("--hwmon-disable")
             with open(log_file, 'w') as log:
                 process = subprocess.Popen(command, stdout=log, stderr=log, text=True)
             
