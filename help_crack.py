@@ -15,7 +15,7 @@ CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required (wordli
 CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required (mask must be in hashcat format)
 CRACKER_ID = str(uuid.uuid4())  # Generate a unique cracker ID
 USERKEY = "YOUR-USER-KEY"  # Add this variable
-DISABLE_HWMON = True  # Set to True to disable hardware monitoring
+DISABLE_HWMON = False  # Set to True to disable hardware monitoring
 
 class TerminalColors:
     ORANGE = '\033[33m'
