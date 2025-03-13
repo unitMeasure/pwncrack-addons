@@ -18,6 +18,7 @@ class UploadConvertPlugin(Plugin):
         self.potfile_url = 'http://pwncrack.org/download_potfile_script'  # Leave this as is
         self.timewait = 600
         self.last_run_time = 0
+        self.key = ""
 
     def on_loaded(self):
         logging.info('[pwncrack] loading')
@@ -36,6 +37,10 @@ class UploadConvertPlugin(Plugin):
             logging.debug(f"[pwncrack] Waiting {remaining_wait_time:.1f} more seconds before next run.")
             return
         self.last_run_time = current_time
+        if self.key == "":
+            logging.warn("PWNCrack enabled, but no api key specified. Add a key to config.toml")
+            return
+
         logging.info(f"[pwncrack] Running upload process. waiting: {self.timewait} seconds.")
         try:
             self._convert_and_upload()
