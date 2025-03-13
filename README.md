@@ -26,9 +26,11 @@ CUSTOM_MASKDICTIONARY = "maskdict.txt"  # optional but both are required (wordli
 CUSTOM_MASK = "?d?d?d?d?d"  # optional but both are required (mask must be in hashcat format)
 CRACKER_ID = str(uuid.uuid4())  # Generate a unique cracker ID
 USERKEY = "YOUR-USER-KEY"  # Add this variable
+DISABLE_HWMON = False  # Set to True to disable hardware monitoring
 ````
 
 **Note:** Ensure `hashcat.exe` is in the same folder as the Python file on Windows, or Hashcat is usable as a command in that directory for every OS.
+**Another Note: Disabling hardware monitoring may damage the GPU you're using hashcat on, as it essentially overrides any settings set by graphic drivers to prevent damage.**
 
 ## pwnagotchi plugin pwncrack.py 🤖
 
