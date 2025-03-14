@@ -29,6 +29,8 @@ class UploadConvertPlugin(Plugin):
         self.whitelist = config["main"].get("whitelist", [])
         self.combined_file = os.path.join(self.handshake_dir, 'combined.hc22000')
         self.potfile_path = os.path.join(self.handshake_dir, 'cracked.pwncrack.potfile')
+        self.last_upload_path = os.path.join(self.handshake_dir, '.pwncrack_last_up')
+        self.timewait = self.options.get('timewait', 600)
 
     def on_internet_available(self, agent):
         current_time = time.time()
@@ -45,16 +47,24 @@ class UploadConvertPlugin(Plugin):
         try:
             self._convert_and_upload()
             self._download_potfile()
+            self.last_run_time = current_time
         except Exception as e:
             logging.error(f"[pwncrack] Error occurred during upload process: {e}", exc_info=True)
 
     def _convert_and_upload(self):
         # Convert all .pcap files to .hc22000, excluding files matching whitelist items
+        last_up_time = os.path.getmtime(self.last_upload_path) if os.path.isfile(self.last_upload_path) else 0
         pcap_files = [f for f in os.listdir(self.handshake_dir)
-                      if f.endswith('.pcap') and not any(item in f for item in self.whitelist)]
+                      if f.endswith('.pcap') and os.path.getmtime(os.path.join(self.handshake_dir,f)) > last_up_time and not any(item in f for item in self.whitelist)]
         if pcap_files:
+            tmp_file = os.path.join(self.handshake_dir, '.pwncrack_uploading')
+            with open(tmp_file, 'w') as fout:
+                fout.write("\n".join(pcap_files))
+
+            # write list of files to a temporary marker file. move to real path if success
             for pcap_file in pcap_files:
                 subprocess.run(['hcxpcapngtool', '-o', self.combined_file, os.path.join(self.handshake_dir, pcap_file)])
+                self.last_run_time = time.time()   # because it can take a while with a lot of pcaps
 
             # Ensure the combined file is created
             if not os.path.exists(self.combined_file):
@@ -68,6 +78,9 @@ class UploadConvertPlugin(Plugin):
 
             # Log the response
             logging.info(f"[pwncrack] Upload response: {response.json()}")
+            if response.status_code == 200:
+                # move temporary marker file in place for next check
+                os.rename(tmp_file, self.last_upload_path)
             os.remove(self.combined_file)  # Remove the combined.hc22000 file
         else:
             logging.info("[pwncrack] No .pcap files found to convert (or all files are whitelisted).")
