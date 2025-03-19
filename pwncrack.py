@@ -97,3 +97,36 @@ class UploadConvertPlugin(Plugin):
 
     def on_unload(self, ui):
         logging.info('[pwncrack] unloading')
+
+    def on_webhook(self, path, request):
+        from flask import abort
+        from flask import render_template_string
+        html_head = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="csrf_token" content="{{ csrf_token() }}"><link href="https://fonts.cdnfonts.com/css/white-rabbit-2" rel="stylesheet"><title>#title#</title><style>body{height:100%;background-color:#333;color:#fff;direction:ltr;font-family:"White Rabbit","Courier New",Courier,monospace;font-size:2em;font-variant-numeric:slashed-zero;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.5);unicode-bidi:bidi-override}h1,h3{color:#0C0;padding-bottom:10px;text-shadow:-1px-1px 0 rgba(0,0,0,.3)}a{color:#0C0;text-decoration:none}a:hover{font-weight:bold;text-decoration:underline}table{width:50%;border-collapse:collapse;margin:20px auto}table th,table td{border:1px solid#1e1e1e;padding:1rem;text-align:left;font-size:1.5rem}table thead{background-color:#1e1e1e}.note{font-size:1em;margin-top:20px;line-height:1.5em}small{font-size:1.2rem;margin-bottom:1rem;display:block;line-height:1.5rem}@media(max-width:1199.98px){table{width:80%}table th,table td{font-size:2.5rem}}</style></head><body>'
+        html_foot = f'<div class="note"><p><a href="https://pwncrack.org" target="_blank">pwncrack.org</a><br />key: {self.key}</p><p><a href="https://pwncrack.org/nets.html" target="_blank">Your Nets</a> | <a href="https://pwncrack.org/leaderboard.html" target="_blank">Leaderboard</a> | <a href="https://pwncrack.org/stats.html" target="_blank">Global Stats</a></p></div></body></html>'
+        if not os.path.isfile(self.potfile_path):
+            html_page  = html_head.replace('#title#','pwncrack | No Passwords!')
+            html_page += '<h3>No downloaded passwords yet.</h3>'
+            html_page += html_foot
+            return render_template_string(html_page), 200
+        try:
+            if request.method == "GET":
+                if path == "/" or not path:
+                    html_page  = html_head.replace('#title#','pwncrack | Passwords!')
+                    html_page += '<h1>Results</h1><table><thead><tr><th>AP</th><th>Pass</th></tr></thead><tbody>'
+                    with open(self.potfile_path, 'r') as file:
+                        for line in file:
+                            bits = line.strip().split(":")
+                            if len(bits) >= 5:
+                                _,_,_,AP,Pass = bits
+                                html_page += f'<tr><td>{AP}</td><td>{Pass}</td></tr>'
+                    html_page += '</tbody></table>'
+                    html_page += html_foot
+                    return render_template_string(html_page), 200
+                else:
+                    abort(404)
+        except Exception as e:
+            logging.error(f"[pwncrack] {repr(e)}")
+            html_page  = html_head.replace('#title#','pwncrack | Error!')
+            html_page += repr(e)
+            html_page += html_foot
+            return render_template_string(html_page), 404
