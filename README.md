@@ -49,8 +49,8 @@ This script uploads all `*.hc22000` files in the directory for users of tools li
 
 ## uploadconvert.py 🔄
 
-This script converts all `.pcap` files in the directory it's executed in and uploads them directly.
+This script converts all `.pcap` files in the directory it's executed in and uploads them directly. You will need `hcxpcapngtool` installed on your computer and in your system path. 
 
-## changeext.py 📁
+## change_ext.py 📁
 
 This script converts all `.22000` files in the directory to `.hc22000`. 
